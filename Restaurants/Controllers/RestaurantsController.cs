@@ -64,6 +64,32 @@ namespace Restaurants.Controllers
             return BadRequest();
         }
 
+        [HttpPut("{name}")]
+        public async Task<ActionResult<Restaurant>> Put(string name, Restaurant model)
+        {
+            try
+            {
+                var oldresto = await _context.Restaurants.FirstOrDefaultAsync(restaurant => restaurant.Name == name);
+                if (oldresto == null) return BadRequest($"Restaurant not find restaurant with name {name}");
+
+                UpdateRestaurant(oldresto, model);
+                if (await _context.SaveChangesAsync() > 0)
+                    return oldresto;
+                return BadRequest("nothing to change ");
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database failure");
+            }
+        }
+
+        private void UpdateRestaurant(Restaurant oldresto, Restaurant model)
+        {
+            oldresto.Name = model.Name;
+            oldresto.Location = model.Location;
+            oldresto.Owner = model.Owner;
+        }
+
         [HttpDelete("{name}")]
         public async Task<IActionResult> Delete(string name)
         {
@@ -82,7 +108,7 @@ namespace Restaurants.Controllers
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database failure");
             }
 
-            return BadRequest("failed to delete the camp");
+            return BadRequest("failed to delete the restaurant");
         }
 
     }
